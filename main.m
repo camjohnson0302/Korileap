@@ -32,10 +32,18 @@ void print_usage (FILE* stream, int exit_code) {
     exit (exit_code);
 }
 
-CGMutablePathRef pathInFrameForSize (CGRect screen, CGSize size) {
+CGMutablePathRef pathInFrameForSize (CGRect screen, CGSize size, bool reverse) {
     CGMutablePathRef path = CGPathCreateMutable();
-    CGPoint origin = CGPointMake(-size.width, -size.height);
-    CGPoint destination = CGPointMake(screen.size.width + size.width, origin.y);
+    CGPoint origin;
+    CGPoint destination;
+
+    if (reverse) {
+        origin = CGPointMake(screen.size.width + size.width, 0);
+        destination = CGPointMake(-size.width, -size.height);
+    } else {
+        origin = CGPointMake(-size.width, -size.height);
+        destination = CGPointMake(screen.size.width + size.width, origin.y);
+    }
     CGFloat midpoint = (destination.x + origin.x) / 2.0;
     CGFloat peak = (screen.size.height + size.height) / 1.0;
     CGPathMoveToPoint(path, NULL, origin.x, origin.y);
@@ -118,8 +126,8 @@ CAEmitterLayer * getEmitterForImageInFrame (CGImageRef sparkleImage, CGSize imag
     sparkle.name = @"sparkle";
 
     // Fade from white to purple
-    //sparkle.color = CGColorCreateGenericRGB(1.0, 1.0, 1.0, 1.0);
-    //sparkle.greenSpeed = -0.7;
+    sparkle.color = CGColorCreateGenericRGB(4.0, 4.0, 4.0, 1.0);
+    sparkle.greenSpeed = -0.7;
 
     sparkle.minificationFilter = kCAFilterNearest;
 
@@ -147,7 +155,7 @@ CAEmitterLayer * getEmitterForImageInFrame (CGImageRef sparkleImage, CGSize imag
     return emitter;
 }
 
-void animateImage (const char* goslingPathString, const char* sparklePathString) {
+void animateImage (const char* goslingPathString, const char* sparklePathString, bool reverse) {
     NSString *goslingImagePath = [NSString stringWithFormat: @"%s" , goslingPathString];
     NSString *sparkleImagePath = [NSString stringWithFormat: @"%s" , sparklePathString];
 
@@ -169,10 +177,10 @@ void animateImage (const char* goslingPathString, const char* sparklePathString)
     CGSize imageSize = getImageSize(goslingImagePath);
     CGImageRef cgimage = createCGImage(goslingImagePath);
     CGMutablePathRef arcPath;
-    arcPath = pathInFrameForSize(screen, imageSize);
+    arcPath = pathInFrameForSize(screen, imageSize, reverse);
     CALayer *layer;
     CAEmitterLayer *emitter;
-    double waitFor = seconds/2.5;
+    // double waitFor = seconds/2.5;
     NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
     layer = layerForImageWithSize(cgimage, imageSize);
 
@@ -193,10 +201,10 @@ void animateImage (const char* goslingPathString, const char* sparklePathString)
     animateLayerAlongPathForKey(layer, arcPath, @"position");
     animateLayerAlongPathForKey(emitter, arcPath, @"emitterPosition");
 
-    [runLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow: waitFor]];
+    // [runLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow: waitFor]];
 
     // Wait for animation to finish
-    [runLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow: seconds - waitFor + 0.2]];
+    [runLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow: seconds]];
     [goslingImagePath release];
     [goslingImagePath release];
     [view release];
@@ -257,7 +265,8 @@ int main (int argc, char * argv[]) {
         printf("Sparkle: %s\n", sparkle_path);
     }
 
-    animateImage(image_path, sparkle_path);
+    animateImage(image_path, sparkle_path, true);
+    animateImage(image_path, sparkle_path, false);
 
     return 0;
 }
