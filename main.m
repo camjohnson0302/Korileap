@@ -222,7 +222,7 @@ int main (int argc, char * argv[]) {
     const char* image_path;
     const char* sparkle_path;
     int verbose = 0, num = 1;
-    double sec = 2.0;
+    double sec = 5.0;
 
     // Parse options
     int next_option;
@@ -256,7 +256,7 @@ int main (int argc, char * argv[]) {
 
     // Coerce string to double
     if (NULL != s) sec = strtod(s, NULL);
-    if (! sec > 0.0) sec = 2.0;
+    if (! sec > 0.0) sec = 0.1;
     seconds = sec;
 
     if (verbose) {
